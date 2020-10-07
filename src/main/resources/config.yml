@@ -1,0 +1,70 @@
+data:
+  date:
+    enabled: true
+    rename:
+  version:
+    enabled: true
+    rename:
+  bukkit version:
+    enabled: true
+    rename:
+  server name:
+    enabled: true
+    rename:
+  server name stripped:
+    enabled: true
+    rename:
+  server motd:
+    enabled: true
+    rename:
+  server motd stripped:
+    enabled: true
+    rename:
+  tps 1m:
+    enabled: true
+    rename:
+  tps 5m:
+    enabled: true
+    rename:
+  tps 15m:
+    enabled: true
+    rename:
+  online players count:
+    enabled: true
+    rename:
+  online players list:
+    enabled: true
+    rename:
+  max players:
+    enabled: true
+    rename:
+  process queue:
+    enabled: true
+    rename:
+  banned names count:
+    enabled: true
+    rename:
+  banned names list:
+    enabled: true
+    rename:
+  banned ips count:
+    enabled: true
+    rename:
+  banned ips list:
+    enabled: true
+    rename:
+  plugins enabled count:
+    enabled: true
+    rename:
+  plugins enabled list:
+    enabled: true
+    rename:
+  plugins disabled count:
+    enabled: true
+    rename:
+  plugins disabled list:
+    enabled: true
+    rename:
+  collection time:
+    enabled: true
+    rename:

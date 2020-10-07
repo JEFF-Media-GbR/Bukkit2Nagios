@@ -1,0 +1,9 @@
+name: ${project.name}
+version: ${project.version}
+author: ${author}
+main: ${mainClass}
+api-version: "1.16"
+commands:
+  bukkit2nagios:
+    description: Reloads the config file
+    permission: bukkit2nagios.reload
