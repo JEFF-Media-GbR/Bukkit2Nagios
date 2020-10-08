@@ -1,5 +1,6 @@
 package de.jeff_media.bukkit2nagios;
 
+import com.google.gson.Gson;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 
@@ -7,6 +8,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 public class TelnetServer {
@@ -16,9 +18,6 @@ public class TelnetServer {
     }
 
     public static void connectToServer() {
-
-        final String fieldSeparator = Main.getInstance().dataCollector.separator;
-        final String lineSeparator = ";"+fieldSeparator + ";" + fieldSeparator + ";";
         while(true) {
             try (ServerSocket serverSocket = new ServerSocket(9991)) {
                 Main.getInstance().getLogger().info("Socket created.");
@@ -29,24 +28,15 @@ public class TelnetServer {
                 //Scanner scanner = new Scanner(inputToServer, "UTF-8");
                 PrintWriter serverPrintOut = new PrintWriter(new OutputStreamWriter(outputFromServer, StandardCharsets.UTF_8), true);
 
-                serverPrintOut.println("Bukkit2Nagios v" + Main.getInstance().getDescription().getVersion());
-                serverPrintOut.println(fieldSeparator);
                 try {
-                    Map<String, Pair<String, String>> data = Main.getInstance().dataCollector.collect();
-                    for (Map.Entry<String, Pair<String, String>> entry : data.entrySet()) {
-                        String sb = entry.getKey() +
-                                fieldSeparator +
-                                entry.getValue().getLeft() +
-                                fieldSeparator +
-                                entry.getValue().getRight() +
-                                lineSeparator;
-                        serverPrintOut.print(sb);
-                    }
+                    String data = Main.getInstance().dataCollector.collect();
+                    serverPrintOut.println(data);
                 } catch (IllegalAccessException e) {
-                    serverPrintOut.println("error collecting data");
-                    e.printStackTrace();
+                    HashMap<String,String> map = new HashMap<>();
+                    map.put("error","illegal access error while trying to fetch data");
+                    serverPrintOut.println(new Gson().toJson(map, HashMap.class));
                 }
-                serverPrintOut.println("");
+
                 connectionSocket.close();
 
             } catch (IOException e) {

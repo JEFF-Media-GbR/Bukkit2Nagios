@@ -1,52 +1,88 @@
 #!/usr/bin/env python
 import subprocess
 import sys
+import json
+from collections import OrderedDict
+import getopt
 
 HOST = "localhost"
-PORT = 9991
+PORT = "9991"
 
 LINESEPARATOR = ""
 FIELDSEPARATOR = ""
 
-COMMAND = ["nc", "$HOST $PORT"]
+COMMAND = "curl -s telnet://"+HOST+":"+PORT
 
-MAGIC="Bukkit2Nagios"
+PLUGINS_DISABLED_WARN = 1
+PLUGINS_DISABLED_CRIT = 2
+
+
+outputJson = False
+outputTable = False
+status = 0
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:],"jt",["--json","--table"])
+except getopt.GetoptError:
+    print 'check_minecraft.py -j'
+    sys.exit(2)
+for opt, arg in opts:
+    if opt == '-j':
+        outputJson = True
+    if opt == '-t':
+        outputTable = True
 
 def extractPerformanceData(key,value):
   if key == "tps 1m":
     print("Processing TPS 1 min")
 
+def setStatus(newStatus):
+    if newStatus > status:
+        status = newStatus
+
+def checkStatus(dict):
+    for key in dict:
+        if key == "Plugins disabled":
+            if int(dict[key]) >= PLUGINS_DISABLED_WARN:
+                setStatus(1)
+            if int(dict[key]) >= PLUGINS_DISABLED_CRIT:
+                setStatus(2)
+
+def getStatus(status):
+    if status == 0:
+        return "OK"
+    if status == 1:
+        return "WARN"
+    if status == 2:
+        return "CRIT"
 
 try:
-  result = subprocess.check_output("/usr/bin/nc localhost 9991 -w 3", shell=True)
+  result = subprocess.check_output(COMMAND, shell=True)
 except subprocess.CalledProcessError as e:
   print("CRITICAL - Could not connect")
   quit()
 
-splitResult = result.split("\n",2)
 
-if(len(splitResult) != 3):
-  print ("CRITICAL - Invalid number of output lines ("+len(splitResult)+")")
-  quit()
+if outputJson:
+    print(result)
+    sys.exit(0)
 
-if MAGIC not in splitResult[0]:
-  print ("CRITICAL - No valid input")
-  quit()
-else:
-  print ("Remote version: "+splitResult[0])
 
-FIELDSEPARATOR=splitResult[1]
-LINESEPARATOR=";"+FIELDSEPARATOR+";"+FIELDSEPARATOR+";"
 PERFORMANCE=list()
 
-for line in splitResult[2].split(LINESEPARATOR):
-  if FIELDSEPARATOR in line:
-  	entry = line.split(FIELDSEPARATOR,2)
-  	key = entry[0]
-  	name = entry[1]
-  	value = entry[2]
-  	print (name+": "+value)
-  	extractPerformanceData(key,value)
-  elif not line:
-    print ("Invalid data: "+line)
+
+
+dict = json.loads(result, object_pairs_hook=OrderedDict)
+
+if outputTable:
+    for key in dict:
+        print "{:<20} {}".format(key, dict[key])
+    sys.exit(0)
+
+output = ""
+
+for key in dict:
+    output += key + ": " + dict[key] + ", "
+
+print(str(getStatus(status)) + " - " + output)
 

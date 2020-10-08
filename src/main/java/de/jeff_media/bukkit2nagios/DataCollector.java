@@ -1,5 +1,7 @@
 package de.jeff_media.bukkit2nagios;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.BanList;
@@ -26,7 +28,7 @@ public class DataCollector {
         separator = ";;\\t;\\t";
     }
 
-    public LinkedHashMap<String,Pair<String,String>> collect() throws IllegalAccessException {
+    public String collect() throws IllegalAccessException {
 
         long start = System.nanoTime();
 
@@ -39,40 +41,31 @@ public class DataCollector {
         Pair<Integer,String> onlinePlayers = DataManager.getOnlinePlayers();
 
 
-        map.put("date", dataManager.getDate());
-        map.put("version", Bukkit.getVersion());
-        map.put("bukkit version", Bukkit.getBukkitVersion());
-        map.put("server name",Bukkit.getName());
-        map.put("server name stripped",strip(Bukkit.getName()));
-        map.put("server motd",Bukkit.getMotd());
-        map.put("server motd stripped",strip(Bukkit.getMotd()));
-        map.put("tps 1m", formatTps(tps[0]));
-        map.put("tps 5m", formatTps(tps[1]));
-        map.put("tps 15m", formatTps(tps[2]));
-        map.put("online players count",String.valueOf(onlinePlayers.getLeft()));
-        map.put("online players list",onlinePlayers.getRight());
-        map.put("max players",String.valueOf(DataManager.getMaxPlayers()));
-        map.put("process queue", String.valueOf(processQueue.length));
-        map.put("banned names count", String.valueOf(nameBans.getLeft()));
-        map.put("banned names list", nameBans.getRight());
-        map.put("banned ips count", String.valueOf(ipBans.getLeft()));
-        map.put("banned ips list", ipBans.getRight());
-        map.put("plugins enabled count", String.valueOf(plugins.getLeft().getLeft()));
-        map.put("plugins enabled list", plugins.getLeft().getRight());
-        map.put("plugins disabled count", String.valueOf(plugins.getLeft().getLeft()));
-        map.put("plugins disabled list", plugins.getRight().getRight());
-        map.put("collection time",ns2ms(System.nanoTime()-start));
+        map.put("Date", dataManager.getDate());
+        map.put("Version", Bukkit.getVersion());
+        map.put("Bukkit Version", Bukkit.getBukkitVersion());
+        //map.put("Server Name",Bukkit.getName());
+        //map.put("server name stripped",strip(Bukkit.getName()));
+        //map.put("MOTD",Bukkit.getMotd());
+        map.put("MOTD",strip(Bukkit.getMotd()));
+        map.put("TPS 1m", formatTps(tps[0]));
+        map.put("TPS 5m", formatTps(tps[1]));
+        map.put("TPS 15m", formatTps(tps[2]));
+        map.put("Online Players",String.valueOf(onlinePlayers.getLeft()));
+        //map.put("Online Players List",onlinePlayers.getRight());
+        map.put("Max Players",String.valueOf(DataManager.getMaxPlayers()));
+        map.put("Process Queue", String.valueOf(processQueue.length));
+        map.put("Banned Names", String.valueOf(nameBans.getLeft()));
+        //map.put("Banned Names List", nameBans.getRight());
+        map.put("Banned IPs", String.valueOf(ipBans.getLeft()));
+        //map.put("Banned IPs List", ipBans.getRight());
+        map.put("Plugins enabled", String.valueOf(plugins.getLeft().getLeft()));
+        //map.put("Plugins enabled List", plugins.getLeft().getRight());
+        map.put("Plugins disabled", String.valueOf(plugins.getRight().getLeft()));
+        //map.put("Plugins disabled List", plugins.getRight().getRight());
+        map.put("Collection Time",ns2ms(System.nanoTime()-start));
 
-        LinkedHashMap<String,Pair<String,String>> strippedMap = new LinkedHashMap<>();
-
-        for(Map.Entry<String, String> entry : map.entrySet()) {
-            if(enabledKeys.containsKey(entry.getKey())) {
-                strippedMap.put(entry.getKey(),new ImmutablePair<>(enabledKeys.get(entry.getKey()),entry.getValue()));
-                System.out.println("Key "+entry.getKey()+" is enabled using name "+enabledKeys.get(entry.getKey())+" with value: \""+entry.getValue()+"\"");
-            }
-        }
-
-        return strippedMap;
+        return new Gson().toJson(map, LinkedHashMap.class);
     }
 
     private String formatTps(double tps) {
